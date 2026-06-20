@@ -1,0 +1,13 @@
+plugins {
+    id 'com.android.library'
+}
+
+android {
+    namespace 'com.isar.flutter_libs'
+    compileSdk 36
+
+    defaultConfig {
+        minSdk 16
+        targetSdk 36
+    }
+}

@@ -144,12 +144,8 @@ class TranslateController extends Notifier<TranslateState> {
     final text = state.inputText.trim();
     if (text.isEmpty) return;
 
-    // If it's an auto-translate (debounced), we might want to skip heavy online translation
-    // depending on the desired UX. For now, let's just proceed.
-    
-    if (!isAuto) {
-      state = state.copyWith(isLoading: true, clearFailure: true);
-    }
+    // Show loading state for both manual and auto-translations
+    state = state.copyWith(isLoading: true, clearFailure: true);
 
     final useCase = ref.read(translateTextUseCaseProvider);
     final either = await useCase(
@@ -158,17 +154,21 @@ class TranslateController extends Notifier<TranslateState> {
       targetLang: state.targetLang,
     );
 
+    // Prevent race conditions: if the input changed while we were waiting, ignore this result
+    if (state.inputText.trim() != text) return;
+
     either.fold(
       (failure) {
-        if (!isAuto) {
-          state = state.copyWith(isLoading: false, failure: failure, clearResult: true);
-        }
+        // Reset loading state and show error only if it's not an auto-translation
+        state = state.copyWith(
+          isLoading: false,
+          failure: isAuto ? null : failure,
+        );
       },
       (result) {
         state = state.copyWith(isLoading: false, result: result, clearFailure: true);
-        if (!isAuto) {
-          ref.read(translationRepositoryProvider).saveToHistory(result);
-        }
+        // Always save to history to ensure the local cache is updated
+        ref.read(translationRepositoryProvider).saveToHistory(result);
       },
     );
   }
