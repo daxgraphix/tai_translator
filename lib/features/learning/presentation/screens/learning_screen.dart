@@ -16,6 +16,7 @@ class LearningScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dailyWordAsync = ref.watch(dailyWordProvider);
+    final dailyPhraseAsync = ref.watch(dailyPhraseProvider);
     final progressAsync = ref.watch(todayProgressProvider);
 
     return Scaffold(
@@ -23,35 +24,52 @@ class LearningScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text(context.l10n.dailyWord, style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 8),
-          dailyWordAsync.when(
-            loading: () => const LoadingIndicator(),
-            error: (e, _) => Text('$e'),
-            data: (word) {
-              if (word == null) return Text(context.l10n.noWordsAvailable);
-              return Card(
-                elevation: 0,
-                color: context.colors.surface,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  side: BorderSide(color: context.colors.outline),
-                ),
-                child: ListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                  title: Text(word.englishWord,
-                      style: context.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-                  subtitle: Text(word.swahiliWord, style: context.textTheme.titleMedium?.copyWith(color: context.colors.primary)),
-                  trailing: IconButton.filledTonal(
-                    style: IconButton.styleFrom(
-                      backgroundColor: context.colors.primary.withValues(alpha: 0.1),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(context.l10n.dailyWord, style: Theme.of(context).textTheme.titleMedium),
+                    const SizedBox(height: 8),
+                    dailyWordAsync.when(
+                      loading: () => const LoadingIndicator(),
+                      error: (e, _) => Text('$e'),
+                      data: (word) {
+                        if (word == null) return Text(context.l10n.noWordsAvailable);
+                        return _DailyItemCard(
+                          title: word.englishWord,
+                          subtitle: word.swahiliWord,
+                          onSpeak: () => ref.read(speakProvider)(word.swahiliWord, 'sw'),
+                        );
+                      },
                     ),
-                    icon: Icon(Icons.volume_up_outlined, color: context.colors.primary),
-                    onPressed: () => ref.read(speakProvider)(word.swahiliWord, 'sw'),
-                  ),
+                  ],
                 ),
-              );
-            },
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(context.l10n.dailyPhrase, style: Theme.of(context).textTheme.titleMedium),
+                    const SizedBox(height: 8),
+                    dailyPhraseAsync.when(
+                      loading: () => const LoadingIndicator(),
+                      error: (e, _) => Text('$e'),
+                      data: (phrase) {
+                        if (phrase == null) return Text(context.l10n.noPhrasesAvailable);
+                        return _DailyItemCard(
+                          title: phrase.englishPhrase,
+                          subtitle: phrase.swahiliPhrase,
+                          onSpeak: () => ref.read(speakProvider)(phrase.swahiliPhrase, 'sw'),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 24),
           Text(context.l10n.todaysProgress, style: Theme.of(context).textTheme.titleMedium),
@@ -101,6 +119,61 @@ class LearningScreen extends ConsumerWidget {
             onTap: () => context.push(AppRoutes.quiz),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _DailyItemCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final VoidCallback onSpeak;
+
+  const _DailyItemCard({
+    required this.title,
+    required this.subtitle,
+    required this.onSpeak,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 0,
+      color: context.colors.surface,
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: context.colors.outline),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: context.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              subtitle,
+              style: context.textTheme.bodyMedium?.copyWith(color: context.colors.primary),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.bottomRight,
+              child: IconButton.filledTonal(
+                visualDensity: VisualDensity.compact,
+                icon: const Icon(Icons.volume_up_outlined, size: 20),
+                onPressed: onSpeak,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

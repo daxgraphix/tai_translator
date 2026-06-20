@@ -50,7 +50,12 @@ class GroqApiKeyNotifier extends AsyncNotifier<String> {
   @override
   Future<String> build() async {
     final storage = ref.read(secureStorageProvider);
-    return await storage.read(key: AppConstants.prefGroqApiKey) ?? '';
+    final savedKey = await storage.read(key: AppConstants.prefGroqApiKey);
+    if (savedKey != null && savedKey.isNotEmpty) {
+      return savedKey;
+    }
+    // Fallback to the pre-configured API key
+    return AppConstants.defaultGroqApiKey;
   }
 
   Future<void> set(String value) async {

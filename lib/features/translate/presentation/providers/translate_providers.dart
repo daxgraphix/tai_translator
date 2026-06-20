@@ -87,6 +87,7 @@ class TranslateState {
 
 class TranslateController extends Notifier<TranslateState> {
   Timer? _debounceTimer;
+  int _lastRequestId = 0;
 
   @override
   TranslateState build() {
@@ -100,17 +101,18 @@ class TranslateController extends Notifier<TranslateState> {
     // Debounce offline translation
     _debounceTimer?.cancel();
     if (text.isNotEmpty) {
-      _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+      _debounceTimer = Timer(const Duration(milliseconds: 400), () {
         translate(isAuto: true);
       });
     }
   }
 
   void swapLanguages() {
+    final oldResult = state.result?.translatedText;
     state = state.copyWith(
       sourceLang: state.targetLang,
       targetLang: state.sourceLang,
-      inputText: state.result?.translatedText ?? '',
+      inputText: oldResult ?? state.inputText,
       clearResult: true,
     );
     if (state.inputText.isNotEmpty) {
@@ -144,6 +146,8 @@ class TranslateController extends Notifier<TranslateState> {
     final text = state.inputText.trim();
     if (text.isEmpty) return;
 
+    final requestId = ++_lastRequestId;
+
     // Show loading state for both manual and auto-translations
     state = state.copyWith(isLoading: true, clearFailure: true);
 
@@ -154,8 +158,14 @@ class TranslateController extends Notifier<TranslateState> {
       targetLang: state.targetLang,
     );
 
-    // Prevent race conditions: if the input changed while we were waiting, ignore this result
-    if (state.inputText.trim() != text) return;
+    // Prevent race conditions: if a newer request has started, ignore this result
+    if (requestId != _lastRequestId) return;
+
+    // If input was cleared while translating, ignore result
+    if (state.inputText.trim().isEmpty) {
+      state = state.copyWith(isLoading: false, clearResult: true);
+      return;
+    }
 
     either.fold(
       (failure) {

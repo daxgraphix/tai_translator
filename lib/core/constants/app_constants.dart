@@ -20,6 +20,8 @@ class AppConstants {
   // Online AI translation provider
   static const String groqBaseUrl = 'https://api.groq.com/openai/v1';
   static const String groqModel = 'llama-3.1-8b-instant';
+  // Hardcoded API Key as per user request to bypass manual setup
+  static const String defaultGroqApiKey = 'gsk_y6e9N7qYp3bW2mX1zR4v5T6u7i8o9p0a1s2d3f4g5h6j7k8l9';
 
   // Storage keys
   static const String prefThemeMode = 'pref_theme_mode';

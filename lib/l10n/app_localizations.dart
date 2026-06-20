@@ -356,11 +356,23 @@ abstract class AppLocalizations {
   /// **'Daily Word'**
   String get dailyWord;
 
+  /// No description provided for @dailyPhrase.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily Phrase'**
+  String get dailyPhrase;
+
   /// No description provided for @noWordsAvailable.
   ///
   /// In en, this message translates to:
   /// **'No words available yet.'**
   String get noWordsAvailable;
+
+  /// No description provided for @noPhrasesAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No phrases available yet.'**
+  String get noPhrasesAvailable;
 
   /// No description provided for @todaysProgress.
   ///
@@ -619,6 +631,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Share'**
   String get share;
+
+  /// No description provided for @wordBook.
+  ///
+  /// In en, this message translates to:
+  /// **'Word Book'**
+  String get wordBook;
+
+  /// No description provided for @wordBookSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse 400+ common words'**
+  String get wordBookSubtitle;
+
+  /// No description provided for @viewAll.
+  ///
+  /// In en, this message translates to:
+  /// **'View All'**
+  String get viewAll;
 }
 
 class _AppLocalizationsDelegate

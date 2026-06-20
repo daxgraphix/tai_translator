@@ -43,7 +43,9 @@
   "noFavoritesTitle": "Bado hakuna vipendwa",
   "noFavoritesSubtitle": "Gusa alama ya moyo kwenye tafsiri au neno lolote ili kulihifadhi hapa.",
   "dailyWord": "Neno la Siku",
+  "dailyPhrase": "Msemo wa Siku",
   "noWordsAvailable": "Bado hakuna maneno yanayopatikana.",
+  "noPhrasesAvailable": "Bado hakuna misemo inayopatikana.",
   "todaysProgress": "Maendeleo ya Leo",
   "wordsLearned": "Maneno",
   "quizzesCompleted": "Maswali",
@@ -105,5 +107,8 @@
   "noTextFound": "Hakuna maandishi yaliyopatikana.",
   "useThisText": "Tumia maandishi haya",
   "ocrError": "Imeshindwa kusoma maandishi kutoka kwenye picha hii.",
-  "share": "Shiriki"
+  "share": "Shiriki",
+  "wordBook": "Kitabu cha Maneno",
+  "wordBookSubtitle": "Pitia maneno 400+ ya kawaida",
+  "viewAll": "Tazama Yote"
 }

@@ -5,7 +5,7 @@ import 'package:isar/isar.dart';
 
 import '../../../../app/providers/core_providers.dart';
 import '../../../dictionary/data/models/dictionary_entry_model.dart';
-import '../../../dictionary/presentation/providers/dictionary_providers.dart';
+import '../../../dictionary/data/models/saved_phrase_model.dart';
 import '../../data/models/flashcard_model.dart';
 import '../../data/models/learning_progress_model.dart';
 
@@ -20,22 +20,46 @@ final dailyWordProvider = FutureProvider<DictionaryEntryModel?>((ref) async {
   return isar.dictionaryEntryModels.where().offset(index).limit(1).findFirst();
 });
 
+final dailyPhraseProvider = FutureProvider<SavedPhraseModel?>((ref) async {
+  final isar = ref.watch(isarProvider);
+  final count = await isar.savedPhraseModels.count();
+  if (count == 0) return null;
+  final dayIndex = DateTime.now().difference(DateTime(2026, 1, 1)).inDays;
+  final index = dayIndex % count;
+  return isar.savedPhraseModels.where().offset(index).limit(1).findFirst();
+});
+
 class LearningRepository {
   final Isar isar;
   LearningRepository(this.isar);
 
-  /// Seeds flashcards from the dictionary on first launch.
+  /// Seeds flashcards from the dictionary and phrases on first launch.
   Future<void> seedFlashcardsIfEmpty() async {
     final count = await isar.flashcardModels.count();
     if (count > 0) return;
+
+    // Seed from Dictionary (Words)
     final words = await isar.dictionaryEntryModels.where().limit(200).findAll();
-    final cards = words
+    final wordCards = words
         .map((w) => FlashcardModel()
           ..front = w.englishWord
           ..back = w.swahiliWord
           ..category = 'word')
         .toList();
-    await isar.writeTxn(() async => isar.flashcardModels.putAll(cards));
+
+    // Seed from Phrases
+    final phrases = await isar.savedPhraseModels.where().limit(100).findAll();
+    final phraseCards = phrases
+        .map((p) => FlashcardModel()
+          ..front = p.englishPhrase
+          ..back = p.swahiliPhrase
+          ..category = 'phrase')
+        .toList();
+
+    await isar.writeTxn(() async {
+      await isar.flashcardModels.putAll(wordCards);
+      await isar.flashcardModels.putAll(phraseCards);
+    });
   }
 
   Future<List<FlashcardModel>> deck({int limit = 20}) async {
@@ -121,31 +145,72 @@ final todayProgressProvider = StreamProvider((ref) {
   return ref.watch(learningRepositoryProvider).watchTodayProgress();
 });
 
-/// Generates a 4-option multiple-choice quiz from the dictionary.
-class QuizQuestion {
-  final DictionaryEntryModel correctEntry;
-  final List<String> options;
-  final String correctAnswer;
-  QuizQuestion({required this.correctEntry, required this.options, required this.correctAnswer});
-}
-
+/// Generates a 10-question multiple-choice quiz.
+/// Randomly mixes words from the dictionary and common phrases.
 final quizQuestionsProvider = FutureProvider<List<QuizQuestion>>((ref) async {
-  final dictSource = ref.watch(dictionaryLocalSourceProvider);
-  final all = await dictSource.isar.dictionaryEntryModels.where().findAll();
-  if (all.length < 4) return [];
+  final isar = ref.watch(isarProvider);
+  
+  final words = await isar.dictionaryEntryModels.where().limit(200).findAll();
+  final phrases = await isar.savedPhraseModels.where().limit(100).findAll();
+
+  if (words.length + phrases.length < 5) return [];
 
   final random = Random();
-  final shuffled = List<DictionaryEntryModel>.from(all)..shuffle(random);
   final questions = <QuizQuestion>[];
 
-  for (final entry in shuffled.take(10)) {
-    final distractors = (List<DictionaryEntryModel>.from(all)..shuffle(random))
-        .where((e) => e.id != entry.id)
-        .take(3)
-        .map((e) => e.swahiliWord)
+  // Combine sources into a common format for picking questions
+  final pool = [
+    ...words.map((w) => (front: w.englishWord, back: w.swahiliWord, type: 'word')),
+    ...phrases.map((p) => (front: p.englishPhrase, back: p.swahiliPhrase, type: 'phrase')),
+  ];
+  
+  final shuffledPool = List.from(pool)..shuffle(random);
+  
+  for (final item in shuffledPool.take(10)) {
+    // Get 3 distractors of the same type if possible, else from general pool
+    final sameTypeDistractors = pool
+        .where((e) => e.type == item.type && e.front != item.front)
         .toList();
-    final options = [entry.swahiliWord, ...distractors]..shuffle(random);
-    questions.add(QuizQuestion(correctEntry: entry, options: options, correctAnswer: entry.swahiliWord));
+    
+    final distractorSource = sameTypeDistractors.length >= 3 ? sameTypeDistractors : pool;
+    
+    final distractors = <String>[];
+    for (final d in (List.from(distractorSource)..shuffle(random))
+        .where((e) => e.front != item.front)
+        .take(3)) {
+      distractors.add(d.back);
+    }
+
+    // If we still don't have enough distractors, just grab anything unique
+    if (distractors.length < 3) {
+      for (final d in pool
+          .where((e) => e.front != item.front && !distractors.contains(e.back))
+          .take(3 - distractors.length)) {
+        distractors.add(d.back);
+      }
+    }
+
+    final List<String> options = [item.back, ...distractors]..shuffle(random);
+    
+    // We reuse DictionaryEntryModel for the correctEntry if it's a word, 
+    // but QuizQuestion needs to be more generic if we want to support both easily.
+    // Let's modify QuizQuestion to be more flexible.
+    questions.add(QuizQuestion(
+      question: item.front,
+      options: options,
+      correctAnswer: item.back,
+    ));
   }
   return questions;
 });
+
+class QuizQuestion {
+  final String question;
+  final List<String> options;
+  final String correctAnswer;
+  QuizQuestion({
+    required this.question,
+    required this.options,
+    required this.correctAnswer,
+  });
+}

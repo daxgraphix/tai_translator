@@ -169,6 +169,8 @@ class _TranslateScreenState extends ConsumerState<TranslateScreen> {
               ),
             ),
             const SizedBox(height: 16),
+            _buildWordBookEntry(context),
+            const SizedBox(height: 16),
             AnimatedSwitcher(
               duration: const Duration(milliseconds: 300),
               transitionBuilder: (Widget child, Animation<double> animation) {
@@ -211,6 +213,58 @@ class _TranslateScreenState extends ConsumerState<TranslateScreen> {
         context.showSnack(context.l10n.copiedToClipboard);
       },
       onShare: () => Share.share(result.translatedText),
+    );
+  }
+
+  Widget _buildWordBookEntry(BuildContext context) {
+    return Card(
+      elevation: 0,
+      color: context.colors.primaryContainer.withValues(alpha: 0.3),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(color: context.colors.primary.withValues(alpha: 0.1)),
+      ),
+      child: InkWell(
+        onTap: () => context.push(AppRoutes.dictionary),
+        borderRadius: BorderRadius.circular(20),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: context.colors.primary,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Icon(Icons.menu_book, color: Colors.white),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      context.l10n.wordBook,
+                      style: context.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: context.colors.onSurface,
+                      ),
+                    ),
+                    Text(
+                      context.l10n.wordBookSubtitle,
+                      style: context.textTheme.bodySmall?.copyWith(
+                        color: context.colors.onSurface.withValues(alpha: 0.6),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.arrow_forward_ios, size: 16, color: context.colors.primary),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

@@ -148,6 +148,10 @@ class DictionaryLocalSource {
 
   Future<DictionaryEntryModel?> getById(int id) => isar.dictionaryEntryModels.get(id);
 
+  Future<List<DictionaryEntryModel>> getAll() async {
+    return isar.dictionaryEntryModels.where().sortByEnglishWord().findAll();
+  }
+
   Future<List<SavedPhraseModel>> phrasesByCategory(String category) {
     return isar.savedPhraseModels.filter().categoryEqualTo(category).findAll();
   }

@@ -143,7 +143,13 @@ class AppLocalizationsSw extends AppLocalizations {
   String get dailyWord => 'Neno la Siku';
 
   @override
+  String get dailyPhrase => 'Msemo wa Siku';
+
+  @override
   String get noWordsAvailable => 'Bado hakuna maneno yanayopatikana.';
+
+  @override
+  String get noPhrasesAvailable => 'Bado hakuna misemo inayopatikana.';
 
   @override
   String get todaysProgress => 'Maendeleo ya Leo';
@@ -281,4 +287,13 @@ class AppLocalizationsSw extends AppLocalizations {
 
   @override
   String get share => 'Shiriki';
+
+  @override
+  String get wordBook => 'Kitabu cha Maneno';
+
+  @override
+  String get wordBookSubtitle => 'Pitia maneno 400+ ya kawaida';
+
+  @override
+  String get viewAll => 'Tazama Yote';
 }

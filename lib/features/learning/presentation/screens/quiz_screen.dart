@@ -77,7 +77,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  context.l10n.quizQuestion(q.correctEntry.englishWord),
+                  context.l10n.quizQuestion(q.question),
                   style: context.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 32),

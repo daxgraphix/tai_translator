@@ -143,7 +143,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dailyWord => 'Daily Word';
 
   @override
+  String get dailyPhrase => 'Daily Phrase';
+
+  @override
   String get noWordsAvailable => 'No words available yet.';
+
+  @override
+  String get noPhrasesAvailable => 'No phrases available yet.';
 
   @override
   String get todaysProgress => 'Today\'s Progress';
@@ -281,4 +287,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get share => 'Share';
+
+  @override
+  String get wordBook => 'Word Book';
+
+  @override
+  String get wordBookSubtitle => 'Browse 400+ common words';
+
+  @override
+  String get viewAll => 'View All';
 }

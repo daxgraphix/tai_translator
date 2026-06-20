@@ -11,6 +11,9 @@ class DictionaryRepositoryImpl implements DictionaryRepository {
   Future<List<DictionaryEntryModel>> search(String query) => localSource.search(query);
 
   @override
+  Future<List<DictionaryEntryModel>> getAll() => localSource.getAll();
+
+  @override
   Future<DictionaryEntryModel?> getById(int id) => localSource.getById(id);
 
   @override

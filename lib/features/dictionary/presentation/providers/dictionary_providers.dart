@@ -18,7 +18,9 @@ final dictionarySearchQueryProvider = StateProvider<String>((ref) => '');
 
 final dictionarySearchResultsProvider = FutureProvider<List<DictionaryEntryModel>>((ref) async {
   final query = ref.watch(dictionarySearchQueryProvider);
-  if (query.trim().isEmpty) return [];
+  if (query.trim().isEmpty) {
+    return ref.watch(dictionaryRepositoryProvider).getAll();
+  }
   return ref.watch(dictionaryRepositoryProvider).search(query);
 });
 

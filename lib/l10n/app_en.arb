@@ -43,7 +43,9 @@
   "noFavoritesTitle": "No favorites yet",
   "noFavoritesSubtitle": "Tap the heart icon on any translation or word to save it here.",
   "dailyWord": "Daily Word",
+  "dailyPhrase": "Daily Phrase",
   "noWordsAvailable": "No words available yet.",
+  "noPhrasesAvailable": "No phrases available yet.",
   "todaysProgress": "Today's Progress",
   "wordsLearned": "Words",
   "quizzesCompleted": "Quizzes",
@@ -106,5 +108,8 @@
   "noTextFound": "No text found.",
   "useThisText": "Use this text",
   "ocrError": "Could not read text from this image.",
-  "share": "Share"
+  "share": "Share",
+  "wordBook": "Word Book",
+  "wordBookSubtitle": "Browse 400+ common words",
+  "viewAll": "View All"
 }
