@@ -12,8 +12,6 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
     final onlineEnabled = ref.watch(onlineTranslationEnabledProvider);
-    final apiKeyAsync = ref.watch(groqApiKeyProvider);
-    final apiKey = apiKeyAsync.valueOrNull ?? '';
     final speed = ref.watch(voiceSpeedProvider);
     final pitch = ref.watch(voicePitchProvider);
 
@@ -50,12 +48,6 @@ class SettingsScreen extends ConsumerWidget {
             value: onlineEnabled,
             onChanged: (v) => ref.read(onlineTranslationEnabledProvider.notifier).set(v),
           ),
-          ListTile(
-            title: Text(context.l10n.groqApiKey),
-            subtitle: Text(apiKey.isEmpty ? context.l10n.notSet : '•' * 10 + (apiKey.length > 4 ? apiKey.substring(apiKey.length - 4) : '')),
-            trailing: const Icon(Icons.edit_outlined),
-            onTap: () => _editApiKey(context, ref, apiKey),
-          ),
           const Divider(),
           _SectionHeader(context.l10n.voice),
           ListTile(
@@ -87,32 +79,6 @@ class SettingsScreen extends ConsumerWidget {
             leading: Icon(Icons.info_outline),
             title: Text(AppConstants.appName),
             subtitle: Text('${AppConstants.appTagline} · Community Edition · v1.0.0'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _editApiKey(BuildContext context, WidgetRef ref, String current) {
-    final controller = TextEditingController(text: current);
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(context.l10n.groqApiKey),
-        content: TextField(
-          controller: controller,
-          obscureText: true,
-          decoration: const InputDecoration(hintText: 'gsk_...'),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(context.l10n.cancel)),
-          FilledButton(
-            onPressed: () {
-              ref.read(groqApiKeyProvider.notifier).set(controller.text.trim());
-              Navigator.pop(ctx);
-              context.showSnack(context.l10n.apiKeySaved);
-            },
-            child: Text(context.l10n.save),
           ),
         ],
       ),

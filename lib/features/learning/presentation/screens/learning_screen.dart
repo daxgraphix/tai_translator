@@ -24,52 +24,59 @@ class LearningScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(context.l10n.dailyWord, style: Theme.of(context).textTheme.titleMedium),
-                    const SizedBox(height: 8),
-                    dailyWordAsync.when(
-                      loading: () => const LoadingIndicator(),
-                      error: (e, _) => Text('$e'),
-                      data: (word) {
-                        if (word == null) return Text(context.l10n.noWordsAvailable);
-                        return _DailyItemCard(
-                          title: word.englishWord,
-                          subtitle: word.swahiliWord,
-                          onSpeak: () => ref.read(speakProvider)(word.swahiliWord, 'sw'),
-                        );
-                      },
-                    ),
-                  ],
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(context.l10n.dailyWord, style: Theme.of(context).textTheme.titleMedium),
+                      const SizedBox(height: 8),
+                      Expanded(
+                        child: dailyWordAsync.when(
+                          loading: () => const Center(child: LoadingIndicator()),
+                          error: (e, _) => Text('$e'),
+                          data: (word) {
+                            if (word == null) return Text(context.l10n.noWordsAvailable);
+                            return _DailyItemCard(
+                              title: word.englishWord,
+                              subtitle: word.swahiliWord,
+                              onSpeak: () => ref.read(speakProvider)(word.swahiliWord, 'sw'),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(context.l10n.dailyPhrase, style: Theme.of(context).textTheme.titleMedium),
-                    const SizedBox(height: 8),
-                    dailyPhraseAsync.when(
-                      loading: () => const LoadingIndicator(),
-                      error: (e, _) => Text('$e'),
-                      data: (phrase) {
-                        if (phrase == null) return Text(context.l10n.noPhrasesAvailable);
-                        return _DailyItemCard(
-                          title: phrase.englishPhrase,
-                          subtitle: phrase.swahiliPhrase,
-                          onSpeak: () => ref.read(speakProvider)(phrase.swahiliPhrase, 'sw'),
-                        );
-                      },
-                    ),
-                  ],
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(context.l10n.dailyPhrase, style: Theme.of(context).textTheme.titleMedium),
+                      const SizedBox(height: 8),
+                      Expanded(
+                        child: dailyPhraseAsync.when(
+                          loading: () => const Center(child: LoadingIndicator()),
+                          error: (e, _) => Text('$e'),
+                          data: (phrase) {
+                            if (phrase == null) return Text(context.l10n.noPhrasesAvailable);
+                            return _DailyItemCard(
+                              title: phrase.englishPhrase,
+                              subtitle: phrase.swahiliPhrase,
+                              onSpeak: () => ref.read(speakProvider)(phrase.swahiliPhrase, 'sw'),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           const SizedBox(height: 24),
           Text(context.l10n.todaysProgress, style: Theme.of(context).textTheme.titleMedium),

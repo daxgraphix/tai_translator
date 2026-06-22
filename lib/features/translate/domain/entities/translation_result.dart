@@ -1,5 +1,5 @@
 /// Engine that ultimately resolved a translation request.
-enum TranslationEngine { offlineDictionary, offlinePhrase, offlineRuleBased, online }
+enum TranslationEngine { offlineDictionary, offlinePhrase, offlineRuleBased, online, literal }
 
 class TranslationResult {
   final String sourceText;
@@ -17,4 +17,5 @@ class TranslationResult {
   });
 
   bool get wasOnline => engine == TranslationEngine.online;
+  bool get isLiteral => engine == TranslationEngine.literal;
 }

@@ -131,8 +131,12 @@ class OfflineTranslationSource {
     }).join();
 
     if (translatedTokens.trim().isEmpty || translatedTokens.trim() == trimmed) {
-      throw OfflineDataException(
-        'No offline match for "$trimmed". Connect to the internet for AI translation.',
+      return TranslationResult(
+        sourceText: trimmed,
+        translatedText: trimmed,
+        sourceLanguage: sourceLang,
+        targetLanguage: targetLang,
+        engine: TranslationEngine.literal,
       );
     }
 

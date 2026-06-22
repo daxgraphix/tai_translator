@@ -33,18 +33,22 @@ class GroqTranslationService {
 
     try {
       final response = await _dio.post(
-        '/chat/completions',
+        'chat/completions',
         options: Options(headers: {'Authorization': 'Bearer $apiKey'}),
         data: {
           'model': AppConstants.groqModel,
-          'temperature': 0.2,
+          'temperature': 0.1, // Lower temperature for more deterministic/correct results
           'messages': [
             {
               'role': 'system',
               'content':
-                  'You are a precise $sourceName-to-$targetName translator for the TAI '
-                  'Translator app. Respond with ONLY the translation, no quotes, no '
-                  'explanation, no preamble.'
+                  'You are a highly accurate $sourceName-to-$targetName translator. '
+                  'Task: Translate the user text precisely. '
+                  'Rules:\n'
+                  '1. Output ONLY the translated text.\n'
+                  '2. No explanations, no preamble, no conversational fillers.\n'
+                  '3. Do NOT repeat the source text.\n'
+                  '4. Maintain the tone and punctuation of the original.'
             },
             {'role': 'user', 'content': text},
           ],

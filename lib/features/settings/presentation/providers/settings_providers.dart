@@ -46,28 +46,6 @@ class OnlineTranslationToggleNotifier extends Notifier<bool> {
 final onlineTranslationEnabledProvider =
     NotifierProvider<OnlineTranslationToggleNotifier, bool>(OnlineTranslationToggleNotifier.new);
 
-class GroqApiKeyNotifier extends AsyncNotifier<String> {
-  @override
-  Future<String> build() async {
-    final storage = ref.read(secureStorageProvider);
-    final savedKey = await storage.read(key: AppConstants.prefGroqApiKey);
-    if (savedKey != null && savedKey.isNotEmpty) {
-      return savedKey;
-    }
-    // Fallback to the pre-configured API key
-    return AppConstants.defaultGroqApiKey;
-  }
-
-  Future<void> set(String value) async {
-    state = const AsyncValue.loading();
-    final storage = ref.read(secureStorageProvider);
-    await storage.write(key: AppConstants.prefGroqApiKey, value: value);
-    state = AsyncValue.data(value);
-  }
-}
-
-final groqApiKeyProvider = AsyncNotifierProvider<GroqApiKeyNotifier, String>(GroqApiKeyNotifier.new);
-
 class VoiceSpeedNotifier extends Notifier<double> {
   @override
   double build() => ref.read(sharedPreferencesProvider).getDouble(AppConstants.prefVoiceSpeed) ?? 0.5;

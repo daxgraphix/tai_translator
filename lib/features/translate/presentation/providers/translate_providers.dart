@@ -19,8 +19,7 @@ final offlineTranslationSourceProvider = Provider<OfflineTranslationSource>((ref
 });
 
 final groqServiceProvider = Provider<GroqTranslationService>((ref) {
-  final apiKey = ref.watch(groqApiKeyProvider).value ?? '';
-  return GroqTranslationService(apiKey: apiKey);
+  return GroqTranslationService(apiKey: AppConstants.defaultGroqApiKey);
 });
 
 final groqTranslationSourceProvider = Provider<GroqTranslationSource>((ref) {
@@ -96,12 +95,15 @@ class TranslateController extends Notifier<TranslateState> {
   }
 
   void setInputText(String text) {
-    state = state.copyWith(inputText: text, clearResult: text.isEmpty);
+    // If the text actually changed, we clear the previous result to avoid "mixing" 
+    // the old translation with the new input visually.
+    final shouldClear = text.trim() != state.inputText.trim() || text.isEmpty;
+    state = state.copyWith(inputText: text, clearResult: shouldClear);
 
-    // Debounce offline translation
+    // Debounce translation
     _debounceTimer?.cancel();
-    if (text.isNotEmpty) {
-      _debounceTimer = Timer(const Duration(milliseconds: 400), () {
+    if (text.trim().isNotEmpty) {
+      _debounceTimer = Timer(const Duration(milliseconds: 600), () {
         translate(isAuto: true);
       });
     }
@@ -148,8 +150,13 @@ class TranslateController extends Notifier<TranslateState> {
 
     final requestId = ++_lastRequestId;
 
-    // Show loading state for both manual and auto-translations
-    state = state.copyWith(isLoading: true, clearFailure: true);
+    // Show loading state and clear old result if it's a new manual request 
+    // or if the text has changed significantly to prevent "mixing" states.
+    state = state.copyWith(
+      isLoading: true, 
+      clearFailure: true,
+      clearResult: !isAuto, // Clear result for manual taps to show fresh state
+    );
 
     final useCase = ref.read(translateTextUseCaseProvider);
     final either = await useCase(

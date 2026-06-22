@@ -15,8 +15,12 @@ final dailyWordProvider = FutureProvider<DictionaryEntryModel?>((ref) async {
   final isar = ref.watch(isarProvider);
   final count = await isar.dictionaryEntryModels.count();
   if (count == 0) return null;
-  final dayIndex = DateTime.now().difference(DateTime(2026, 1, 1)).inDays;
+  
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  final dayIndex = today.difference(DateTime(2024, 1, 1)).inDays.abs();
   final index = dayIndex % count;
+  
   return isar.dictionaryEntryModels.where().offset(index).limit(1).findFirst();
 });
 
@@ -24,8 +28,12 @@ final dailyPhraseProvider = FutureProvider<SavedPhraseModel?>((ref) async {
   final isar = ref.watch(isarProvider);
   final count = await isar.savedPhraseModels.count();
   if (count == 0) return null;
-  final dayIndex = DateTime.now().difference(DateTime(2026, 1, 1)).inDays;
+  
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  final dayIndex = today.difference(DateTime(2024, 1, 1)).inDays.abs();
   final index = dayIndex % count;
+  
   return isar.savedPhraseModels.where().offset(index).limit(1).findFirst();
 });
 
@@ -34,12 +42,13 @@ class LearningRepository {
   LearningRepository(this.isar);
 
   /// Seeds flashcards from the dictionary and phrases on first launch.
+  /// Increased limits to leverage the expanded 1,100+ item seed data.
   Future<void> seedFlashcardsIfEmpty() async {
     final count = await isar.flashcardModels.count();
     if (count > 0) return;
 
-    // Seed from Dictionary (Words)
-    final words = await isar.dictionaryEntryModels.where().limit(200).findAll();
+    // Seed from Dictionary (Words) - Take a larger slice for variety
+    final words = await isar.dictionaryEntryModels.where().limit(500).findAll();
     final wordCards = words
         .map((w) => FlashcardModel()
           ..front = w.englishWord
@@ -48,7 +57,7 @@ class LearningRepository {
         .toList();
 
     // Seed from Phrases
-    final phrases = await isar.savedPhraseModels.where().limit(100).findAll();
+    final phrases = await isar.savedPhraseModels.where().limit(200).findAll();
     final phraseCards = phrases
         .map((p) => FlashcardModel()
           ..front = p.englishPhrase
@@ -67,8 +76,8 @@ class LearningRepository {
 
     // Spaced Repetition (SRS) approach:
     // 1. Cards never reviewed
-    // 2. Cards reviewed but with poor accuracy (timesCorrect / timesReviewed < 0.7)
-    // 3. Cards not reviewed in the last 3 days
+    // 2. Cards reviewed but with poor accuracy (timesCorrect / timesReviewed < 0.8)
+    // 3. Cards not reviewed in the last 24 hours
     final newCards = await isar.flashcardModels.filter().timesReviewedEqualTo(0).limit(limit).findAll();
 
     final struggleCards = await isar.flashcardModels
@@ -150,8 +159,9 @@ final todayProgressProvider = StreamProvider((ref) {
 final quizQuestionsProvider = FutureProvider<List<QuizQuestion>>((ref) async {
   final isar = ref.watch(isarProvider);
   
-  final words = await isar.dictionaryEntryModels.where().limit(200).findAll();
-  final phrases = await isar.savedPhraseModels.where().limit(100).findAll();
+  // Use a larger slice of data for variety
+  final words = await isar.dictionaryEntryModels.where().limit(300).findAll();
+  final phrases = await isar.savedPhraseModels.where().limit(200).findAll();
 
   if (words.length + phrases.length < 5) return [];
 
@@ -167,34 +177,31 @@ final quizQuestionsProvider = FutureProvider<List<QuizQuestion>>((ref) async {
   final shuffledPool = List.from(pool)..shuffle(random);
   
   for (final item in shuffledPool.take(10)) {
-    // Get 3 distractors of the same type if possible, else from general pool
-    final sameTypeDistractors = pool
-        .where((e) => e.type == item.type && e.front != item.front)
-        .toList();
+    // Collect unique distractors
+    final distractors = <String>{};
     
-    final distractorSource = sameTypeDistractors.length >= 3 ? sameTypeDistractors : pool;
+    // Try to get distractors of the same type first
+    final sameTypePool = pool.where((e) => e.type == item.type && e.back != item.back).toList();
+    sameTypePool.shuffle(random);
     
-    final distractors = <String>[];
-    for (final d in (List.from(distractorSource)..shuffle(random))
-        .where((e) => e.front != item.front)
-        .take(3)) {
+    for (final d in sameTypePool) {
       distractors.add(d.back);
+      if (distractors.length >= 3) break;
     }
 
-    // If we still don't have enough distractors, just grab anything unique
+    // Fill with any type if not enough
     if (distractors.length < 3) {
-      for (final d in pool
-          .where((e) => e.front != item.front && !distractors.contains(e.back))
-          .take(3 - distractors.length)) {
-        distractors.add(d.back);
+      final generalPool = List.from(pool)..shuffle(random);
+      for (final d in generalPool) {
+        if (d.back != item.back) {
+          distractors.add(d.back);
+        }
+        if (distractors.length >= 3) break;
       }
     }
 
-    final List<String> options = [item.back, ...distractors]..shuffle(random);
+    final List<String> options = [item.back, ...distractors].toList()..shuffle(random);
     
-    // We reuse DictionaryEntryModel for the correctEntry if it's a word, 
-    // but QuizQuestion needs to be more generic if we want to support both easily.
-    // Let's modify QuizQuestion to be more flexible.
     questions.add(QuizQuestion(
       question: item.front,
       options: options,

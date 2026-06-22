@@ -6,8 +6,8 @@ TAI Translator is a comprehensive language learning and translation application 
 ## 2. Technical Stack
 - **Framework:** Flutter (Multi-platform)
 - **State Management:** Riverpod (Provider-based, using Notifiers and AsyncNotifiers)
-- **Database:** Isar (NoSQL) - Chosen for its speed and native support for Dart objects.
-- **AI Integration:** Groq SDK (Llama 3 70B/8B) - Used for context-aware translations.
+- **Database:** Isar (NoSQL) - Chosen for its speed and native support for Dart objects. Optimized with indexes for fast history and dictionary lookups.
+- **AI Integration:** Groq Cloud (Llama 3 8B) - Used for context-aware translations with a 10s timeout budget.
 - **Localization:** Flutter Gen-L10n (ARB files) - Supporting English and Swahili.
 - **Architecture:** Clean Architecture with a feature-based folder structure:
   - `lib/features/translate`: Core translation logic and UI.
@@ -18,12 +18,15 @@ TAI Translator is a comprehensive language learning and translation application 
 ## 3. Core Systems
 
 ### A. Translation Engine
-The app uses a hybrid translation strategy:
-1. **Offline Mode:** Uses a local dictionary lookup (Isar) and basic rule-based suffix/prefix handling.
-2. **AI Mode (Online):** When an internet connection is detected and a Groq API key is configured, the `GroqTranslationService` provides high-quality translations.
-3. **Race Condition Protection:** 
-   - A `_lastRequestId` counter tracks every request in `TranslateController`.
-   - Incoming results are discarded if their ID is lower than the current `_lastRequestId`, preventing slow network responses from overwriting newer user input.
+The app uses a hybrid translation strategy with a multi-stage fallback pipeline:
+1. **Cache Lookup:** Checks Isar for identical previous translations to save battery and data.
+2. **AI Mode (Online):** If connected and enabled, uses Groq Llama 3 for high-quality results.
+3. **Offline Mode:** Uses a local dictionary and rule-based engine (prefix/suffix handling).
+4. **Literal Fallback:** If all else fails, returns the source text as a "Literal" result to ensure the UI remains responsive.
+
+**Race Condition Protection:** 
+- A `_lastRequestId` counter tracks every request in `TranslateController`.
+- Incoming results are discarded if their ID is lower than the current `_lastRequestId`.
 4. **Debouncing:** A 400ms debounce ensures that network or heavy database operations only trigger once the user pauses typing.
 
 ### B. Learning Module & SRS
